@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/book.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
       # Install mdBook using Rust's package manager
