@@ -39,15 +39,15 @@ jobs:
         run: |
           RUST_VERSION=$(rustup show | grep rustc | awk '{ print $2 }')
           echo "Stable Rust version: ${RUST_VERSION}"
-          echo "version=${RUST_VERSION}" >> $GITHUB_ENV
+          echo "rust_stable_version=${RUST_VERSION}" >> $GITHUB_ENV
       # Cache the Rust toolchain to speed up builds
       - name: Cache Rust toolchain
         uses: actions/cache@v4
         with:
           path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ env.version }}
+          key: ${{ runner.os }}-cargo-${{ env.rust_stable_version }}
           restore-keys: |
-            ${{ runner.os }}-cargo-${{ env.version }}
+            ${{ runner.os }}-cargo-${{ env.rust_stable_version }}
       # Install mdBook using Rust's package manager
       - name: Install mdBook
         run: |
