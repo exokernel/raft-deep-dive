@@ -42,7 +42,7 @@ jobs:
           echo "version=${RUST_VERSION}" >> $GITHUB_ENV
       # Cache the Rust toolchain to speed up builds
       - name: Cache Rust toolchain
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo-${{ env.version }}
