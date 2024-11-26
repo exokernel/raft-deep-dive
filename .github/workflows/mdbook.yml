@@ -47,9 +47,7 @@ jobs:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo-${{ env.version }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
-        env:
-          version: ${{ steps.rust-version.outputs.version }}
+            ${{ runner.os }}-cargo-${{ env.version }}
       # Install mdBook using Rust's package manager
       - name: Install mdBook
         run: |
