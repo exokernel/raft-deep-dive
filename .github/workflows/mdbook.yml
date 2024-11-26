@@ -36,7 +36,10 @@ jobs:
       # Determine the current stable version of Rust
       - name: Determine Rust stable version
         id: rust-version
-        run: echo "version=$(curl -sSf https://static.rust-lang.org/dist/channel-rust-stable.toml | grep cargo- | head -n 1 | grep -oE 'cargo-[0-9]+\.[0-9]+' | cut -d'-' -f2)" >> $GITHUB_ENV
+        run: |
+        RUST_VERSION=$(rustup show | grep rustc | awk '{ print $2 }')
+        echo "Stable Rust version: ${RUST_VERSION}"
+        echo "version=${RUST_VERSION}" >> $GITHUB_ENV
       # Cache the Rust toolchain to speed up builds
       - name: Cache Rust toolchain
         uses: actions/cache@v3
