@@ -4,3 +4,7 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Raft Deep Dive"
+description = "A deep dive into the Raft consensus algorithm."
+
+[output.html]
+git-repository-url = "https://github.com/exokernel/raft-deep-dive"
