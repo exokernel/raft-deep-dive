@@ -1,7 +1,5 @@
 # Log Replication
 
-## Overview
-
 The main operation of Raft's log replication is the AppendEntries RPC call. This call is made by the leader to each peer. It's also used as a heartbeat as described in the [Leader Election](./leader-election.md) section. Typically the heartbeats are AppendEntries calls with no log entries. However, when the leader is retrying failed AppendEntries calls, it will include log entries in the heartbeat messages to followers that are behind.
 
 The high-level happy-path flow of log replication is as follows:
