@@ -46,7 +46,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mdbook  # Directory where mdBook binary is stored
+          path: bin  # Directory where mdBook binary is stored
           key: mdbook-${{ env.MDBOOK_VERSION }}  # Cache key based on the version tag
           restore-keys: mdbook-${{ env.MDBOOK_VERSION }}  # Restore cache based on the version tag
       # Install mdBook using Rust's package manager
