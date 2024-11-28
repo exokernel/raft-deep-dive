@@ -1,16 +1,13 @@
-# Workflow for building and deploying a mdBook site to GitHub Pages
+# Sample workflow for building and deploying a mdBook site to GitHub Pages
 #
 # To get started with mdBook see: https://rust-lang.github.io/mdBook/index.html
 #
 name: Deploy mdBook site to Pages
 
 on:
-  # Runs on pushes targeting the default branch that change mdbook files
+  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
-    paths:
-      - 'src/**'
-      - 'book.toml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -36,33 +33,39 @@ jobs:
     steps:
       # Check out the repository
       - uses: actions/checkout@v4
-      # Determine the current stable version of Rust
-      - name: Determine Rust stable version
-        id: rust-version
+      # Fetch the latest mdBook version
+      - name: Fetch latest mdBook version
+        id: get-mdbook-version
         run: |
-          rustup update
-          RUST_VERSION=$(rustup show | grep rustc | awk '{ print $2 }')
-          echo "Stable Rust version: ${RUST_VERSION}"
-          echo "STABLE_RUST_VERSION=${RUST_VERSION}" >> $GITHUB_ENV
-      # Cache the Rust toolchain to speed up builds
-      - name: Cache Rust toolchain
+          tag=$(curl -s 'https://api.github.com/repos/rust-lang/mdbook/releases/latest' | jq -r '.tag_name')
+          echo "MDBOOK_VERSION=${tag}"
+          echo "MDBOOK_VERSION=${tag}" >> $GITHUB_ENV
+      # Cache the mdBook binary
+      - name: Cache mdBook
+        id: cache
         uses: actions/cache@v4
         with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ env.STABLE_RUST_VERSION }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ env.STABLE_RUST_VERSION }}
+          path: mdbook  # Directory where mdBook binary is stored
+          key: mdbook-${{ env.MDBOOK_VERSION }}  # Cache key based on the version tag
+          restore-keys: mdbook-${{ env.MDBOOK_VERSION }}  # Restore cache based on the version tag
       # Install mdBook using Rust's package manager
-      - name: Install mdBook
+      - name: Install mdBook if not cached
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          cargo install --version ${MDBOOK_VERSION} mdbook
+          url="https://github.com/rust-lang/mdbook/releases/download/${{ env.MDBOOK_VERSION }}/mdbook-${{ env.MDBOOK_VERSION }}-x86_64-unknown-linux-gnu.tar.gz"
+          mkdir -p mdbook
+          curl -sSL $url | tar -xz --directory=./mdbook
+      # Add mdBook to PATH
+      - name: Add mdBook to PATH
+        run: echo "${{ github.workspace }}/mdbook" >> $GITHUB_PATH
+      # Build the book
+      - name: Build Book
+        run: |
+          mdbook build
       # Setup GitHub Pages
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      # Build the book using mdBook
-      - name: Build with mdBook
-        run: mdbook build
       # Upload the built book as an artifact
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
