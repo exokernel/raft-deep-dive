@@ -138,7 +138,8 @@ Once we verify the log is consistent with the leaders log up until this point th
     }
 ```
 
-Now the log is appended. A final check the follower does when responding to each `AppendEntries` is to move the commit index forward to match the leaders commit index.
+Now the log is appended. A final check the follower does when responding to each `AppendEntries` is to move the commit index forward to match the leaders commit index. After updating its term to match the leader's term, the follower can reply success.
+
 
 ```go
 	if len(args.Entries) > 0 {
@@ -152,12 +153,7 @@ Now the log is appended. A final check the follower does when responding to each
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, len(rf.log))
 	}
-```
 
-Finally the follower can update its term to match the leader's term and reply success.
-
-```go
-    // 6. Reply success
 	reply.Term = rf.currentTerm
 	reply.Success = true // Successful AppendEntries
 ```
