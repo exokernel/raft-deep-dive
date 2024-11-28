@@ -18,6 +18,8 @@ This of course ignores the many failure scenarios that can occur. Raft is design
 
 Let's go through the log replication process in more detail and look at how it's implemented in the Hashicorp Raft library. The Hashicorp Raft library is written in Go and is a popular implementation. One of the authors of Raft, Diego Ongaro, was involved in the development of the library. We'll compare how I'm implementing it in MIT's distributed systems course to the real implementation by Hashicorp. This is mainly just to help me understand and verify the correctness of my implementation but hopefully serves as a good deep dive into how the replication works.
 
+### Leader Appends to its Log and sends RPCs to Followers
+
 The client sending a write to the leader isn't very interesting so let's start at step 2 "The leader appends the new entry to its log". In my 6.5840 code this is pretty straightforward. We create a new log entry with the `command` that will be applied to the state machine (if committed) and the current `term` and append it to the log.
 
 ```go
@@ -69,6 +71,8 @@ Next is step 3, "the leader sends `AppendEntries` RPCs to all followers". How do
 The `AppendEntries` RPC includes the leader's current term, its id, the index of the log entry immediately preceding new ones in for the given peer, the term of that same preceding log entry, the actual entries to append (starting at the next index we are tracking for the given peer), and the leader's commit index. This is all specified in figure 2 of the Raft paper.
 
 TODO: Hashicorp
+
+### The Followers Handle and Respond to AppendEntries
 
 Okay next step is for the followers to process the `AppendEntries` RPC. This is where things get more complicated. If the `AppendEntries` has a term number less than the follower's term then the follower immediately replies false and the `AppendEntries` fails. The leader shouldn't be behind the followers!
 
@@ -157,3 +161,7 @@ Now the log is appended. A final check the follower does when responding to each
 	reply.Term = rf.currentTerm
 	reply.Success = true // Successful AppendEntries
 ```
+
+### The Leader Handles the Responses
+
+Now back on the leader we have to handle the responses from the followers.
