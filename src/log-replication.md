@@ -16,5 +16,4 @@ This of course ignores the many failure scenarios that can occur. Raft is design
 
 ## Log Replication in Detail
 
-Let's go through the log replication process in more detail and look at how it's implemented in the Hashicorp Raft library.
-
+Let's go through the log replication process in more detail and look at how it's implemented in the Hashicorp Raft library. The Hashicorp Raft library is written in Go and is a popular implementation. One of the authors of Raft, Diego Ongaro, was involved in the development of the library.
