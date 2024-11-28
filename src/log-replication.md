@@ -69,3 +69,5 @@ Next is step 3, "the leader sends `AppendEntries` RPCs to all followers". How do
 The `AppendEntries` RPC includes the leader's current term, its id, the index of the log entry immediately preceding new ones in for the given peer, the term of that same preceding log entry, the actual entries to append (starting at the next index we are tracking for the given peer), and the leader's commit index. This is all specified in figure 2 of the Raft paper.
 
 TODO: Hashicorp
+
+Okay next step
