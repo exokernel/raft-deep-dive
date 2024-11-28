@@ -70,4 +70,86 @@ The `AppendEntries` RPC includes the leader's current term, its id, the index of
 
 TODO: Hashicorp
 
-Okay next step is
+Okay next step is for the followers to process the `AppendEntries` RPC. This is where things get more complicated. If the `AppendEntries` has a term number less than the follower's term then the follower immediately replies false and the `AppendEntries` fails. The leader shouldn't be behind the followers!
+
+```go
+	// Initialize reply
+	reply.Term = rf.currentTerm
+	reply.VoteGranted = false
+...
+	// 1. Reply false if term < currentTerm (§5.1)
+	if args.Term < rf.currentTerm {
+		DPrintf("Server %d: AppendEntries RPC reply sent to server %d. Term %d < currentTerm %d", rf.me, args.LeaderId, args.Term, rf.currentTerm)
+		return // Failed AppendEntries
+	}
+```
+
+Next the follower needs to ensure that the log entries the leader sent are consistent with its own log. To do that it first checks that the term of the preceding log entries match.
+
+```go
+	// Note: Even heartbeats can contain log entries bc they are used to retry failed appends (e.g. follower logs is
+	// inconsistent with leader). The leader will have decremented nextIndex for the follower that failed to append.
+	if len(args.Entries) > 0 {
+		// 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm (§5.3)
+		prevLogSliceIndex := args.PrevLogIndex - 1
+		if prevLogSliceIndex < 0 || prevLogSliceIndex >= len(rf.log) {
+			DPrintf("Server %d: Index %d out of bounds, sliceIndex: %d", rf.me, args.PrevLogIndex, prevLogSliceIndex)
+			panic("Index out of bounds")
+		}
+		matchingPrevIndexLogEntry := rf.log[prevLogSliceIndex]
+		if matchingPrevIndexLogEntry.Term != args.PrevLogTerm {
+			DPrintf("Server %d: AppendEntries RPC reply sent to server %d. Log doesn't contain an entry at prevLogIndex %d whose term matches prevLogTerm %d", rf.me, args.LeaderId, args.PrevLogIndex, args.PrevLogTerm)
+			return // Failed AppendEntries
+		}
+...
+    }
+```
+
+If the previous log entries terms match then we can proceed to check that the rest of the log is consistent. If there's a mismatch then the follower must delete the conflicting entry and everything that follows it.
+
+```go
+	if len(args.Entries) > 0 {
+...
+		// 3. If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it (§5.3)
+		for i := prevLogSliceIndex + 1; i < len(rf.log); i++ {
+			// i - prevLogSliceIndex - 1 gives the correct index into args.Entries
+			if rf.log[i].Term != args.Entries[i-prevLogSliceIndex-1].Term {
+				rf.log = truncateLog(rf.log, i)
+				break
+			}
+		}
+...
+    }
+```
+
+Once we verify the log is consistent with the leaders log up until this point then we can append the new log entries.
+
+```go
+	if len(args.Entries) > 0 {
+...
+        // 4. Append any new entries not already in the log
+		for i, entry := range args.Entries {
+			logIndex := args.PrevLogIndex + 1 + i
+			if logIndex-1 >= len(rf.log) {
+				rf.log = append(rf.log, entry)
+			}
+		}
+...
+    }
+```
+
+Now the log is appended. A final check the follower does when responding to each `AppendEntries` is to move the commit index forward to match the leaders commit index.
+
+```go
+	if len(args.Entries) > 0 {
+...
+    }
+
+	// 5. If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of last new entry) (§5.3)
+	// The min() ensures that the follower's commitIndex is updated safely, preventing it committing entries that it
+	// hasn't received yet. The leader's commitIndex could be beyond the follower's last log index. In that case, we
+	// adjust the commitIndex to the follower's last log index.
+	if args.LeaderCommit > rf.commitIndex {
+		rf.commitIndex = min(args.LeaderCommit, len(rf.log))
+	}
+```
