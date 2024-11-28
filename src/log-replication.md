@@ -16,5 +16,5 @@ This of course ignores the many failure scenarios that can occur. Raft is design
 
 ## Log Replication in Detail
 
-Let's go through the log replication process in more detail now.
+Let's go through the log replication process in more detail and look at how it's implemented in the Hashicorp Raft library.
 
