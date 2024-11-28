@@ -70,4 +70,4 @@ The `AppendEntries` RPC includes the leader's current term, its id, the index of
 
 TODO: Hashicorp
 
-Okay next step
+Okay next step is
