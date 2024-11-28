@@ -153,3 +153,11 @@ Now the log is appended. A final check the follower does when responding to each
 		rf.commitIndex = min(args.LeaderCommit, len(rf.log))
 	}
 ```
+
+Finally the follower can update its term to match the leader's term and reply success.
+
+```go
+    // 6. Reply success
+	reply.Term = rf.currentTerm
+	reply.Success = true // Successful AppendEntries
+```
