@@ -140,6 +140,7 @@ Now the log is appended. A final check the follower does when responding to each
 	// adjust the commitIndex to the follower's last log index.
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, len(rf.log))
+        rf.applyCommittedEntries()
 	}
 
 	reply.Term = rf.currentTerm
