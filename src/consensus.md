@@ -20,4 +20,6 @@ Once a leader is elected it replicates all writes it receives to the other nodes
 
 The followers do a lot of checks to make sure their log is consistent with the leaders log. If any of those checks fail then the leader, which keeps track of the point up to which logs have been applied on each follower, tries to find the last point where the log of the follower was consistent with its own log and resend log entries to the follower from that point on. This fixes the follower's log to be consistent with the leaders.
 
-### Persistence
+### Safety
+
+### Membership Changes
