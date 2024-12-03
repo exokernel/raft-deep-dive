@@ -7,3 +7,51 @@ Raft guarantees that the log is always consistent among the leader and followers
 Raft was designed to be easy to understand and implement. It's broken down into subproblems that function more or less independently: leader election, log replication, and safety. It also includes a joint consensus mechanism for membership changes that allow it to continue operating as nodes are added and removed.
 
 In this short book we will take a deep dive into how Raft works under the hood. We'll look at each subcomponent of Raft and try to explain it as clearly as possible with words, diagrams, and Golang source code.
+
+### Proposed Outline
+
+* 2 Consensus, what is it good for
+	* Agreement on distributed state
+	* Availability
+	* Fault tolerance
+* 3 The Goals of Raft
+	* Easier to teach, easier to understand, easier to implement (than Paxos)
+	* As performant (as Paxos)
+	* Reasonably Fault Tolerant
+* 4  How to Build a Raft (The Distinct Parts)
+	* The Roles
+		* Candidate
+			* Send RV RPCs to peers
+			* Become leader or become follower
+		* Leader
+			* Get client requests
+			* Send AE to followers
+			* Commit
+			* Respond to client requests
+			* Also, respond to RV, maybe step down and become follower
+		* Follower
+			* Wait for AE RPCs from Leader and respond to RV
+	* Leader Election
+	* Log Replication
+	* Safety
+	* Membership Changes w/ Joint Consensus
+* 5 Leader Election Deep Dive
+	* RequestVote RPC
+	* Election Timeout
+	* Handling RequestVote
+	* Handling RequestVote Response
+	* Leader Failures
+* 6 Log Replication Deep Dive
+	* AppendEntries RPC
+	* Handling AppendEntries
+	* Handling AppendEntries Response
+	* Retrying after Failures
+* 7 Safety Deep Dive
+	* The State Machine Safety Property
+* 8 Membership Changes Deep Dive
+	* Joint Consensus
+* 9 Raft in the Real World
+	* Hashicorp Raft Library
+	* Consul
+	* RabbitMQ Quorum Queues
+	* MySQL Orchestrator
